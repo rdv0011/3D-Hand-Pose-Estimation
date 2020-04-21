@@ -5,7 +5,7 @@ weights: weights_last.pth
 dataset: dexter+object
 augment: 1
 shuffle: 1
-cuda: 1
+cuda: 0
 
 train_feature_extractor: 1
 

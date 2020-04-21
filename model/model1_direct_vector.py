@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch
 from torchvision import models
 import numpy as np
+from utils import cuda
 
 
 '''Encoder-Decoder - direct heatmaps for 2D and vector for 3D'''
@@ -36,7 +37,7 @@ class HeatmapToCoordinated(nn.Module):
         self.input_size = input_size
         
 
-    def forward(self, heatmaps, cuda):
+    def forward(self, heatmaps, cudaDevice):
         
         dims = heatmaps.shape
         sums = torch.sum(heatmaps, dim=[2,3])
@@ -44,7 +45,7 @@ class HeatmapToCoordinated(nn.Module):
 
         normalized = heatmaps / sums
         arr = torch.tensor(np.float32(np.arange(0,dims[3]))).repeat(dims[0],dims[1],1)
-        arr = arr.cuda(cuda)
+        arr = cuda(arr)
         x_prob = torch.sum(normalized, dim=2)
         y_prob = torch.sum(normalized, dim=3)
 
@@ -63,7 +64,7 @@ class TreeToVector(nn.Module):
         super(TreeToVector, self).__init__()
         
 
-    def forward(self, heatmaps, cuda):
+    def forward(self, heatmaps, cudaDevice):
         
         dims = heatmaps.shape
         sums = torch.sum(heatmaps, dim=[2,3])
@@ -71,7 +72,7 @@ class TreeToVector(nn.Module):
 
         normalized = heatmaps / sums
         arr = torch.tensor(np.float32(np.arange(0,dims[3]))).repeat(dims[0],dims[1],1)
-        arr = arr.cuda(cuda)
+        arr = cuda(arr)
         x_prob = torch.sum(normalized, dim=2)
         y_prob = torch.sum(normalized, dim=3)
 

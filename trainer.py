@@ -9,7 +9,7 @@ from model import get_model
 from dataset import get_dataloader
 from optimizer import get_optimizer
 from criterion import get_criterion
-
+from utils import printProgressBar, cuda
 
 class Trainer:
     def __init__(self, config):
@@ -44,7 +44,7 @@ class Trainer:
         
         
         self.train_fe = bool(config['train_feature_extractor'])
-        
+            
     def train(self):
         
         if not self.train_fe:
@@ -66,11 +66,12 @@ class Trainer:
             batches = 0
             logging = {}
 
+            batchesCount = len(self.train_dataloader)
+            printProgressBar(0, batchesCount, prefix = 'Epoch ' + str(epoch) + ' progress:', suffix = 'Complete', length = 50)
             for sample in self.train_dataloader:
                 self.model.train()
                 self.optimizer.zero_grad()
-                
-                sample['image'] = sample['image'].cuda(self.cuda)
+                sample['image'] = cuda(sample['image'])
                 output = self.model(sample)
                 loss_data = self._loss(sample, output)  
                 
@@ -86,7 +87,9 @@ class Trainer:
                         logging[key] = [value.item()]
               
                 batches += 1
+                printProgressBar(batches, batchesCount, prefix = 'Epoch ' + str(epoch) + ' progress:', suffix = 'Complete', length = 50)
                 if batches >= self.batches_per_epoch:
+                    printProgressBar(batchesCount, batchesCount, prefix = 'Epoch ' + str(epoch) + ' progress:', suffix = 'Complete', length = 50)
                     break
                     
                   
@@ -150,7 +153,7 @@ class Trainer:
         with torch.no_grad():
             for sample in self.val_dataloader:
                 
-                sample['image'] = sample['image'].cuda(self.cuda)
+                sample['image'] = cuda(sample['image'])
                 output = self.model(sample)
                 loss_data = self._loss(sample, output)  ##add logging intermediate losses
                 loss = loss_data['total']
@@ -174,18 +177,18 @@ class Trainer:
         
         for i, l_name in enumerate(self.loss_dict['output_name']):
             sample_name = self.loss_dict['sample_name'][i]
-            
+            sampleTensor = cuda(sample[sample_name])
+
             if l_name == 'heatmaps':
                 img_size = sample['heatmaps'].shape[2]
                 pres = sample['is_present'].unsqueeze(2).unsqueeze(2)
-                pres = pres.repeat([1,1,img_size,img_size]).cuda(self.cuda)
-                output = torch.mul(output[l_name],pres) 
-                inter_loss = self.loss_dict['loss'][i] (output, 
-                                                sample[sample_name].cuda(self.cuda))
+                pres = pres.repeat([1,1,img_size,img_size])
+                pres = cuda(pres)
+                output = torch.mul(output[l_name],pres)
+                inter_loss = self.loss_dict['loss'][i] (output, sampleTensor)
 
             else:
-                inter_loss = self.loss_dict['loss'][i] (output[l_name], 
-                                                sample[sample_name].cuda(self.cuda)) 
+                inter_loss = self.loss_dict['loss'][i] (output[l_name], sampleTensor) 
             
             return_dict[l_name] = inter_loss
             loss += inter_loss * self.loss_dict['weight'][i]       

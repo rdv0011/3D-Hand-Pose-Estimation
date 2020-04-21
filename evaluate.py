@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from model import get_model
 from dataset import get_dataloader
 from metric import get_metric
+from utils import cuda
 
 def evaluate(config):
     model = get_model(config)
@@ -18,7 +19,7 @@ def evaluate(config):
     
     is_real = bool(config['is_real'])
     
-    cuda = config['cuda']
+    cudaDevice = config['cuda']
     path_dir = 'experiment/' + config['dir'] + '/' 
     path_val_file = path_dir + config['dataset'] + '_valuation.json'
 
@@ -43,7 +44,7 @@ def evaluate(config):
 
     for num, sample in enumerate(dataloader, 1):
         
-        sample['image'] = sample['image'].cuda(cuda)
+        sample['image'] = cuda(sample['image'])
         output = model(sample)
         
         if is_real:

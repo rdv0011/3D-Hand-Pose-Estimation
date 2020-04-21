@@ -19,7 +19,7 @@ def get_model(config):
         
     else:
         raise ValueError('Unknown model: {}'.format(model_name))
-    
-    model = model.cuda(int(config['cuda']))
+
+    # model = model.cuda(int(config['cuda']))
 
     return model
