@@ -5,6 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Test CoreML",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/testCoreML.py",
+            "console": "integratedTerminal",
+            "args": [
+                "e022",
+                "dexter+object"
+            ]
+        },
+        {
             "name": "Convert to CoreML",
             "type": "python",
             "request": "launch",
